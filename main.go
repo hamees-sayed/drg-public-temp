@@ -46,23 +46,23 @@ func main() {
 }
 
 
-
-//publish function
-func publish(client mqtt.Client) {
-	num := 1
-	for i := 1; i <= num; i++ {
-		text := fmt.Sprintf("Message %d", i)
-		token := client.Publish("drogue-public-temperature/go", 0, false, text)
-		token.Wait()
-		time.Sleep(time.Second)
-	}
-}
-
-
 //Subscribe function
 func sub(client mqtt.Client) {
 	topic := "drogue-public-temperature/#"
 	token := client.Subscribe(topic, 1, nil)
 	token.Wait()
 	fmt.Printf("Subscribed to topic: %s\n", topic)
+}
+
+
+
+//publish function
+func publish(client mqtt.Client) {
+	num := 10
+	for i := 0; i <= num; i++ {
+		text := fmt.Sprintf("Message #%d", i)
+		token := client.Publish("drogue-public-temperature/go", 0, false, text)
+		token.Wait()
+		time.Sleep(time.Second)
+	}
 }
