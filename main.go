@@ -32,6 +32,7 @@ func NewTlsConfig() *tls.Config {
         log.Fatalln(err.Error())
     }
     certpool.AppendCertsFromPEM(ca)
+	
     // Import client certificate/key pair
     clientKeyPair, err := tls.LoadX509KeyPair("client.crt", "key.unencrypted.pem")
     if err != nil {
@@ -48,13 +49,14 @@ func NewTlsConfig() *tls.Config {
 
 
 func main() {
-	var broker = "broker.emqx.io"
+	var broker = "broker.hivemq.com"
     var port = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
 	opts.SetUsername("drogue-public-temperature")
 	opts.SetPassword("public")
 	opts.SetTLSConfig(NewTlsConfig())
+	
 	//callback functions
 	opts.SetDefaultPublishHandler(messageHandler)
 	opts.OnConnect = connectHandler
