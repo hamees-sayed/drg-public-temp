@@ -23,8 +23,8 @@ var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, 
 
 
 func main() {
-	var broker = "mqtt-integration.sandbox.drogue.cloud"
-	var port = 443
+	var broker = "broker.hivemq.com"
+	var port = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
 	opts.SetUsername("drogue-public-temperature")
