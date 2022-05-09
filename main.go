@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -21,15 +25,36 @@ var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, 
 	fmt.Printf("Connect lost: %v", err)
 }
 
+func NewTlsConfig() *tls.Config {
+    certpool := x509.NewCertPool()
+    ca, err := ioutil.ReadFile("ca-cert.pem")
+    if err != nil {
+        log.Fatalln(err.Error())
+    }
+    certpool.AppendCertsFromPEM(ca)
+    // Import client certificate/key pair
+    clientKeyPair, err := tls.LoadX509KeyPair("client.crt", "key.unencrypted.pem")
+    if err != nil {
+        panic(err)
+    }
+    return &tls.Config{
+        RootCAs: certpool,
+        ClientAuth: tls.NoClientCert,
+        ClientCAs: nil,
+        InsecureSkipVerify: true,
+        Certificates: []tls.Certificate{clientKeyPair},
+    }
+}
+
 
 func main() {
-	var broker = "mqtt-integration.sandbox.drogue.cloud"
-	var port = 443
+	var broker = "broker.emqx.io"
+    var port = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
 	opts.SetUsername("drogue-public-temperature")
 	opts.SetPassword("public")
-	
+	opts.SetTLSConfig(NewTlsConfig())
 	//callback functions
 	opts.SetDefaultPublishHandler(messageHandler)
 	opts.OnConnect = connectHandler
@@ -46,23 +71,23 @@ func main() {
 }
 
 
+
+//publish function
+func publish(client mqtt.Client) {
+	num := 5
+	for i := 1; i <= num; i++ {
+		text := fmt.Sprintf("Message %d", i)
+		token := client.Publish("drogue-public-temperature/go", 0, false, text)
+		token.Wait()
+		time.Sleep(time.Second)
+	}
+}
+
+
 //Subscribe function
 func sub(client mqtt.Client) {
 	topic := "drogue-public-temperature/#"
 	token := client.Subscribe(topic, 1, nil)
 	token.Wait()
 	fmt.Printf("Subscribed to topic: %s\n", topic)
-}
-
-
-
-//publish function
-func publish(client mqtt.Client) {
-	num := 10
-	for i := 0; i <= num; i++ {
-		text := fmt.Sprintf("Message #%d", i)
-		token := client.Publish("drogue-public-temperature/go", 0, false, text)
-		token.Wait()
-		time.Sleep(time.Second)
-	}
 }
