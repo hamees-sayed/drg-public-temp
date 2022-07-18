@@ -76,7 +76,7 @@ func main() {
 
 //publish function
 func publish(client mqtt.Client) {
-	num := 5
+	num := 10
 	for i := 1; i <= num; i++ {
 		text := fmt.Sprintf("Message %d", i)
 		token := client.Publish("drogue-public-temperature/go", 0, false, text)
